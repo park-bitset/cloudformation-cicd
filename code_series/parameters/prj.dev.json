@@ -1,0 +1,9 @@
+{
+    "Parameters": {
+        "EnvType": "dev",
+        "ProjectPrefixLower": "prj",
+        "GitHubRepoOwner": "park-bitset",
+        "GitHubRepoName": "cloudformation-cicd",
+        "GitHubBranch": "dev"
+    }
+}

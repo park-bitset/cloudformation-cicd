@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "Base resources for the CI/CD pipeline"
+
+Parameters:
+  EnvType:
+    Type: String
+    Description: "Environment type"
+    AllowedValues:
+      - dev
+      - prod
+      - test
+  ProjectPrefixLower:
+    Type: String
+    Description: "lowercase prefix for the project"
+
+Resources:
+  ArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefixLower}-${EnvType}-artifacts-bucket"
+
+  ImageRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub "${ProjectPrefixLower}-${EnvType}-image-repository"
+      RepositoryPolicyText:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCodeBuildAccess
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:CompleteLayerUpload
+              - ecr:GetDownloadUrlForLayer
+              - ecr:InitiateLayerUpload
+              - ecr:PutImage
+              - ecr:UploadLayerPart
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Expire images older than 7 days",
+                "selection": {
+                  "tagStatus": "untagged",
+                  "countType": "sinceImagePushed",
+                  "countUnit": "days",
+                  "countNumber": 7
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
+Outputs:
+  ArtifactsBucket:
+    Value: !Ref ArtifactsBucket
+    Export:
+      Name: !Sub "${ProjectPrefixLower}-${EnvType}-artifacts-bucket"
+    
+  ImageRepository:
+    Value: !Ref ImageRepository
+    Export:
+      Name: !Sub "${ProjectPrefixLower}-${EnvType}-image-repository"
