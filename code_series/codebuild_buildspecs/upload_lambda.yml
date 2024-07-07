@@ -1,0 +1,10 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - cd src/handlers
+      - zip -r handlers.zip .
+      - aws s3 cp handlers.zip s3://$S3_BUCKET/handlers.zip
+      - echo "Build completed on `date`"
